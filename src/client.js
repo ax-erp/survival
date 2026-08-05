@@ -312,7 +312,7 @@ async function getWebSocketUrl() {
     }
   }
 
-  // 2. For domain names (axserv.duckdns.org), reverse proxies, and standard ports, use location.host directly!
+  // 2. For custom domain names, reverse proxies, and standard ports, use location.host directly!
   return `${protocol}//${location.host}`;
 }
 

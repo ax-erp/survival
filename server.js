@@ -16,10 +16,12 @@ wss.on('error', () => {}); // Handle wss port retry silently
 
 const PORT = process.env.PORT || 3000;
 
-// Domain-based routing: If accessed via axerp domain on '/', serve client.html automatically!
+const CLIENT_DOMAIN = process.env.CLIENT_DOMAIN || '';
+
+// Domain-based routing: If accessed via custom client domain or query client=true, serve client.html automatically!
 app.use((req, res, next) => {
   const host = (req.headers.host || '').toLowerCase();
-  if (req.path === '/' && (host.includes('axerp') || req.query.client === 'true')) {
+  if (req.path === '/' && ((CLIENT_DOMAIN && host.includes(CLIENT_DOMAIN)) || req.query.client === 'true')) {
     const distClient = path.join(__dirname, 'dist', 'client.html');
     if (fs.existsSync(distClient)) {
       return res.sendFile(distClient);

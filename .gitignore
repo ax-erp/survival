@@ -6,6 +6,8 @@ node_modules/
 dist/
 dist-ssr/
 *.local
+.env*
+config.local.json
 
 # Logs
 npm-debug.log*
