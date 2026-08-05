@@ -746,10 +746,11 @@ export class Wireframe3DRenderer {
     }
 
     // ----------------------------------------------------
-    // Ultra-Smooth Steady Camera Low-Pass Filter
+    // Fast & Responsive Camera Low-Pass Filter
     // ----------------------------------------------------
-    const filterLerpX = 0.025; // Heavy horizontal smoothing filters out pin bounce jitter
-    const filterLerpY = 0.04;  // Smooth steady downward progress
+    const filterLerpX = this.isClientView ? 0.35 : 0.15;
+    const filterLerpY = this.isClientView ? 0.45 : 0.20;
+    const filterLerpZ = this.isClientView ? 0.45 : 0.20;
 
     if (!this.smoothedPos.initialized) {
       this.smoothedPos.x = targetPos3D.x;
@@ -759,18 +760,18 @@ export class Wireframe3DRenderer {
     } else {
       this.smoothedPos.x += (targetPos3D.x - this.smoothedPos.x) * filterLerpX;
       this.smoothedPos.y += (targetPos3D.y - this.smoothedPos.y) * filterLerpY;
-      this.smoothedPos.z += (targetPos3D.z - this.smoothedPos.z) * 0.04;
+      this.smoothedPos.z += (targetPos3D.z - this.smoothedPos.z) * filterLerpZ;
     }
 
-    this.smoothedVel.x += (targetVel.x - this.smoothedVel.x) * 0.03;
-    this.smoothedVel.y += (targetVel.y - this.smoothedVel.y) * 0.03;
+    this.smoothedVel.x += (targetVel.x - this.smoothedVel.x) * 0.1;
+    this.smoothedVel.y += (targetVel.y - this.smoothedVel.y) * 0.1;
 
     // Smooth Euler Gyro/Touch Angles (Pitch & Yaw)
-    this.smoothedGyro.pitch += ((this.gyroOffset.pitch || 0) - this.smoothedGyro.pitch) * 0.12;
-    this.smoothedGyro.yaw += ((this.gyroOffset.yaw || 0) - this.smoothedGyro.yaw) * 0.12;
+    this.smoothedGyro.pitch += ((this.gyroOffset.pitch || 0) - this.smoothedGyro.pitch) * 0.2;
+    this.smoothedGyro.yaw += ((this.gyroOffset.yaw || 0) - this.smoothedGyro.yaw) * 0.2;
 
     // 3. Camera Controls (100% Linear Euler Up/Down/Left/Right)
-    const camLerp = 0.06;
+    const camLerp = this.isClientView ? 0.45 : 0.20;
 
     if (this.cameraMode === 'cockpit') {
       // Cockpit FPV View:

@@ -96,7 +96,7 @@ export class HostWebSocketManager {
     const engine = this.appState.engine;
     if (!ws || ws.readyState !== WebSocket.OPEN || !engine) return;
 
-    if (now - this.appState.lastBinaryTickTime < 50) return; // 20Hz (every 50ms)
+    if (now - this.appState.lastBinaryTickTime < 25) return; // 40Hz high frequency (every 25ms)
     this.appState.lastBinaryTickTime = now;
 
     const isReplay = engine.isPlayingReplay && engine.replayFrames && engine.replayFrames.length > 0;
