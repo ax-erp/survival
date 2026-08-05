@@ -16,7 +16,19 @@ wss.on('error', () => {}); // Handle wss port retry silently
 
 const PORT = process.env.PORT || 3000;
 
-const CLIENT_DOMAIN = process.env.CLIENT_DOMAIN || '';
+let CLIENT_DOMAIN = process.env.CLIENT_DOMAIN || '';
+
+// Load local .env.local configuration automatically if exists
+try {
+  const envPath = path.join(__dirname, '.env.local');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf-8');
+    const match = envContent.match(/CLIENT_DOMAIN\s*=\s*(.+)/);
+    if (match) {
+      CLIENT_DOMAIN = match[1].trim();
+    }
+  }
+} catch (err) {}
 
 // Domain-based routing: If accessed via custom client domain or query client=true, serve client.html automatically!
 app.use((req, res, next) => {
