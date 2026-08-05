@@ -336,9 +336,12 @@ async function connectWebSocket() {
     }
   };
 
-  ws.onmessage = (e) => {
+  ws.onmessage = async (e) => {
     if (e.data instanceof ArrayBuffer) {
       unpackBinaryTick(e.data);
+    } else if (typeof Blob !== 'undefined' && e.data instanceof Blob) {
+      const arrayBuf = await e.data.arrayBuffer();
+      unpackBinaryTick(arrayBuf);
     } else {
       try {
         const msg = JSON.parse(e.data);
