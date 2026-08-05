@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AX Survival</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- TOP HEADER                                         -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <header class="app-header">
+    <div class="logo-area">
+      <span class="kaiji-badge">SURVIVAL</span>
+      <h1 class="app-title">AX Survival</h1>
+    </div>
+
+    <div class="top-stats-bar">
+      <div class="stat-pill" style="border-color: rgba(0,229,255,0.2);">
+        <span>⏱</span>
+        <strong id="topTimerDisplay" style="color: var(--cyan);">00:00 / 01:00</strong>
+      </div>
+      <div class="stat-pill">
+        <span>🎱</span>
+        <strong id="topTotalCount">250개</strong>
+      </div>
+      <div class="stat-pill">
+        <span>👑</span>
+        <strong id="topWinnerName">대기 중...</strong>
+      </div>
+      <div class="stat-pill" id="serverStatusPill" style="border-color: rgba(34,197,94,0.3); cursor: pointer;" title="클라이언트 접속 안내">
+        <span>🌐</span>
+        <strong id="topServerStatus" style="color: var(--green);">서버 연결 중...</strong>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- MAIN 3-COLUMN LAYOUT                               -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <main class="main-container">
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- LEFT PANEL: Settings & Controls                  -->
+    <!-- ─────────────────────────────────────────────── -->
+    <aside class="panel left-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>⚙️</span>
+          <span>설정 및 조작반</span>
+        </div>
+      </div>
+
+      <div class="panel-body">
+
+        <!-- Duration Setting -->
+        <div class="control-card" style="border-color: rgba(0,229,255,0.18); background: rgba(0,229,255,0.025);">
+          <div class="card-title">⏱ 추첨 소요 시간 설정</div>
+          <select id="durationSelect" class="form-select">
+            <option value="0.5">⚡ 0.5분 — 초고속</option>
+            <option value="1" selected>⏱ 1분 — 표준</option>
+            <option value="2">⏱ 2분 — 긴장감 고조</option>
+            <option value="3">⏱ 3분 — 드라마틱</option>
+            <option value="5">⏱ 5분 — 대규모</option>
+            <option value="10">⏱ 10분 — 마라톤</option>
+          </select>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.5;">
+            설정한 시간 동안 250개 구슬이<br>5단계를 거쳐 1등을 가려냅니다.
+          </div>
+        </div>
+
+        <!-- Excel Upload -->
+        <div class="control-card">
+          <div class="card-title">① 참가자 리스트 업로드</div>
+          <div class="file-upload-box" id="dropZone">
+            <input type="file" id="excelInput" accept=".xlsx,.xls,.csv" style="display:none;">
+            <div style="font-size: 26px; margin-bottom: 8px;">📁</div>
+            <div style="font-size: 12.5px; font-weight: 700; color: var(--cyan);">엑셀 / CSV 드래그 또는 클릭</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px;" id="fileStatus">이름·사번 자동 매핑 · 250명 랜덤 배정</div>
+          </div>
+          <button class="btn btn-secondary" id="btnSampleExcel" style="width:100%; margin-top:8px; font-size:12px; height:36px;">
+            📥 250명 샘플 엑셀 다운로드
+          </button>
+        </div>
+
+        <!-- Machine Controls -->
+        <div class="control-card">
+          <div class="card-title">② 기계 동작 제어</div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btnStart">▶️ 구슬 낙하 시작</button>
+            <button class="btn btn-secondary" id="btnPause">⏸ 일시 정지</button>
+            <button class="btn btn-danger" id="btnReset">🔄 리셋 및 재배정</button>
+            <button class="btn btn-secondary" id="btnShake" style="border-color:rgba(255,201,71,0.3);color:var(--gold);">
+              👋 기계 강제 흔들기
+            </button>
+          </div>
+        </div>
+
+        <!-- Speed -->
+        <div class="control-card">
+          <div class="card-title">③ 시뮬레이션 배속</div>
+          <div class="speed-btn-group">
+            <button class="speed-btn active" data-speed="1">1×</button>
+            <button class="speed-btn" data-speed="2">2×</button>
+            <button class="speed-btn" data-speed="4">4×</button>
+          </div>
+
+          <div class="divider" style="margin:12px 0;"></div>
+
+          <div class="toggle-row">
+            <span class="toggle-label">🔊 사운드 효과음</span>
+            <label class="switch">
+              <input type="checkbox" id="toggleAudio" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- CENTER PANEL: Pachinko Canvas                   -->
+    <!-- ─────────────────────────────────────────────── -->
+    <section class="center-panel">
+      <canvas id="pachinkoCanvas"></canvas>
+    </section>
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- RIGHT PANEL: Status Dashboard                   -->
+    <!-- ─────────────────────────────────────────────── -->
+    <aside class="panel right-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>📊</span>
+          <span>전체 구슬 현황판</span>
+        </div>
+        <span class="finish-count-badge" id="finishCount">0 / 250 완주</span>
+      </div>
+
+      <div class="panel-body" style="padding:10px; gap:8px;">
+
+        <!-- 5-Stage Counters -->
+        <div class="control-card" style="padding:10px 10px 8px;">
+          <div class="card-title" style="margin-bottom:8px;">단계별 구슬 현황</div>
+          <div class="stage-counter-bar">
+            <div class="stage-counter-cell">
+              <div class="stage-counter-label">1단</div>
+              <div class="stage-counter-val" id="cntS1" style="color:var(--gold);">0</div>
+            </div>
+            <div class="stage-counter-cell">
+              <div class="stage-counter-label">2단</div>
+              <div class="stage-counter-val" id="cntS2" style="color:var(--cyan);">0</div>
+            </div>
+            <div class="stage-counter-cell">
+              <div class="stage-counter-label">3단</div>
+              <div class="stage-counter-val" id="cntS3" style="color:var(--red);">0</div>
+            </div>
+            <div class="stage-counter-cell">
+              <div class="stage-counter-label">4단</div>
+              <div class="stage-counter-val" id="cntS4" style="color:var(--purple);">0</div>
+            </div>
+            <div class="stage-counter-cell">
+              <div class="stage-counter-label">5단</div>
+              <div class="stage-counter-val" id="cntS5" style="color:var(--green);">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1등 Winner Banner & Replay/Re-Draw Action Group -->
+        <div class="winner-card-compact" id="winnerCard">
+          <span style="font-size:20px; animation: pulseCrown 1.6s infinite alternate;">👑</span>
+          <span style="font-size:11px; font-weight:800; color:var(--gold); white-space:nowrap; letter-spacing:0.5px;">1등</span>
+          <strong id="winnerNameDisplay" style="font-size:13.5px; font-weight:800; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">대기 중...</strong>
+          <span class="winner-ball-num" id="winnerBallNumDisplay" style="margin-left:auto; flex-shrink:0;">-</span>
+        </div>
+        <div id="winnerActionGroup" style="display:none; flex-direction:column; gap:6px; margin-top:6px;">
+          <button class="btn btn-secondary" id="btnPanelReplay" style="width:100%; height:34px; font-size:11.5px; border-color:rgba(0,229,255,0.4); color:var(--cyan);">
+            🎬 1등 당첨 순간 리플레이 (Replay)
+          </button>
+          <button class="btn btn-secondary" id="btnPanelReDraw" style="width:100%; height:34px; font-size:11.5px; border-color:rgba(255,201,71,0.5); color:var(--gold);">
+            🔄 다시 추첨하기 (Re-Draw)
+          </button>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="list-tabs">
+          <button class="tab-btn active" id="filterAll" data-filter="all">전체 (<span id="cntAll">250</span>)</button>
+          <button class="tab-btn" id="filterActive" data-filter="active">🟢 생존 (<span id="cntActiveSummary">250</span>)</button>
+          <button class="tab-btn" id="filterDrain" data-filter="drain">🔴 탈락 (<span id="cntDrainSummary">0</span>)</button>
+          <button class="tab-btn" id="filterWin" data-filter="win">👑 당첨 (<span id="cntWinSummary">0</span>)</button>
+        </div>
+
+        <!-- 250 Ball Grid -->
+        <div class="control-card" style="flex:1; display:flex; flex-direction:column; overflow:hidden; padding:8px;">
+          <div class="card-title" style="margin-bottom:6px;">구슬 생존 현황 매트릭스</div>
+          <div class="ball-grid-container" id="ballGrid" style="flex:1; overflow-y:auto;"></div>
+
+          <!-- Search -->
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="🔍 구슬 번호 (#77) 또는 이름 검색"
+            style="width:100%; background:rgba(0,0,0,0.45); border:1px solid var(--border-muted); color:var(--text-primary); padding:7px 10px; border-radius:var(--r-xs); font-size:11px; font-family:inherit; margin-top:6px; outline:none; transition: border-color 0.2s ease;"
+            onfocus="this.style.borderColor='rgba(0,229,255,0.4)'"
+            onblur="this.style.borderColor='var(--border-muted)'"
+          >
+
+          <!-- Detail Card -->
+          <div class="ball-detail-card" id="ballDetailCard" style="margin-top:6px; padding:5px 10px; font-size:11px;">
+            구슬을 클릭하면 상세 정보가 표시됩니다.
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- 3D WIREFRAME 1st-PERSON PIP OVERLAY               -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="wireframe-pip-container" id="wireframePip">
+    <div class="pip-header">
+      <div class="pip-title">
+        <span class="pip-live-badge">3D PIP</span>
+        <span id="pipTargetTitle">🥽 구슬 #0 1인칭 탑승 시점</span>
+      </div>
+      <div class="pip-actions">
+        <button class="pip-btn" id="btnPipMin" title="최소화/복원">➖</button>
+        <button class="pip-btn" id="btnPipExpand" title="화면 확대">🔲</button>
+      </div>
+    </div>
+
+    <!-- 3D Canvas Viewport -->
+    <div class="pip-viewport" id="pipViewport">
+      <!-- Overlay Stats Badge -->
+      <div class="pip-hud-overlay">
+        <div class="hud-pill" id="pipHudTarget">🎯 구슬: <strong id="pipTargetName">#0</strong></div>
+        <div class="hud-pill" id="pipHudStage">📍 위치: <strong id="pipTargetStage">1단계</strong></div>
+        <div class="hud-pill" id="pipHudSpeed">⚡ 속도: <strong id="pipTargetSpeed">0.0</strong></div>
+      </div>
+      <div id="wireframe3dContainer" style="width: 100%; height: 100%;"></div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="pip-controls">
+      <div class="pip-select-wrapper">
+        <label for="pipBallSelect" style="white-space:nowrap; font-size:11px; color:var(--text-muted);">타깃 구슬:</label>
+        <select id="pipBallSelect" class="pip-select"></select>
+      </div>
+
+      <div class="pip-cam-mode-group">
+        <button class="cam-btn" data-mode="shoulder" title="1인칭 숄더뷰 (멀미 방지)">숄더뷰</button>
+        <button class="cam-btn active" data-mode="cockpit" title="1인칭 초근접 콕핏">콕핏</button>
+        <button class="cam-btn" data-mode="overview" title="3D 입체 전체">조감도</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- WINNER MODAL                                       -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="winnerModal">
+    <div class="modal-content">
+      <div style="font-size:52px; margin-bottom:12px; line-height:1;">🎉&thinsp;🏆&thinsp;🎉</div>
+      <div class="modal-title">축하합니다!</div>
+      <div style="font-size:14px; color:var(--text-muted); margin-top:4px;">AX Survival 최종 1등 당첨</div>
+
+      <div class="modal-winner-box">
+        <div class="modal-winner-name" id="modalWinnerName">김철수</div>
+        <div class="modal-winner-ball" id="modalWinnerBall">구슬 #77</div>
+      </div>
+
+      <button class="btn btn-secondary" id="btnModalReplay" style="width:100%; height:42px; font-size:13.5px; margin-bottom:8px; border-color:rgba(0,229,255,0.4); color:var(--cyan);">
+        🎬 1등 당첨 순간 다시보기 (Replay)
+      </button>
+
+      <button class="btn btn-primary" id="btnModalReDraw" style="width:100%; height:44px; font-size:14px; margin-bottom:8px; background:linear-gradient(135deg, var(--gold) 0%, #d49400 100%); color:#000; border-color:var(--gold);">
+        🔄 리셋 후 바로 다시 추첨하기 (Re-Draw)
+      </button>
+
+      <button class="btn btn-secondary" id="btnCloseModal" style="width:100%; height:40px; font-size:13px;">
+        결과 확인 및 닫기
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- HOST DISCONNECT MODAL                              -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="hostDisconnectModal">
+    <div class="modal-content" style="border-color: rgba(255, 45, 107, 0.5); box-shadow: 0 0 50px rgba(255, 45, 107, 0.3);">
+      <div style="font-size: 48px; margin-bottom: 12px; line-height: 1;">⚠️</div>
+      <div class="modal-title" style="color: var(--red);">호스트 접속 종료</div>
+      <div style="font-size: 13.5px; color: var(--text-secondary); margin-top: 8px; margin-bottom: 20px; line-height: 1.6;" id="hostDisconnectReason">
+        다른 창이나 기기에서 메인 호스트로 새로 접속하여<br>기존 호스트 접속이 종료되었습니다.
+      </div>
+      <button class="btn btn-danger" id="btnReconnectHost" style="width:100%; height:44px; font-size:14px;">
+        🔄 메인 호스트로 재접속하기
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

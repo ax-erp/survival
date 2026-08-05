@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AX Survival 1인칭 탑승 시점 | 클라이언트</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "canvas-confetti": "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/+esm",
+      "matter-js": "https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="/src/style.css">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #070a14;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .client-app {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .client-header {
+      height: 48px;
+      background: rgba(10, 15, 29, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      z-index: 50;
+    }
+
+    .client-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 13px;
+      color: #fff;
+    }
+
+    .client-assigned-badge {
+      background: linear-gradient(135deg, var(--gold) 0%, #d49400 100%);
+      color: #000;
+      font-weight: 900;
+      font-size: 11.5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      box-shadow: 0 0 12px rgba(255, 201, 71, 0.4);
+    }
+
+    .client-viewport {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #070a14;
+    }
+
+    #client3dContainer {
+      width: 100%;
+      height: 100%;
+    }
+
+    .client-hud {
+      position: absolute;
+      top: 6px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    .client-hud-pill {
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .client-hud-pill strong {
+      color: var(--cyan);
+      font-weight: 800;
+    }
+
+    .client-controls {
+      height: 60px;
+      background: rgba(8, 12, 23, 0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(0, 229, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      z-index: 50;
+      gap: 10px;
+    }
+
+    .client-select-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .client-select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-muted);
+      color: var(--gold);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .client-cam-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .client-cam-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .client-cam-btn.active {
+      background: rgba(0, 229, 255, 0.25);
+      border-color: var(--cyan);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+    }
+    .name-modal-overlay {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: rgba(4, 7, 16, 0.88);
+      backdrop-filter: blur(14px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .name-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .name-modal-card {
+      background: linear-gradient(160deg, #101728 0%, #070a14 100%);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 40px rgba(0, 229, 255, 0.2), 0 20px 50px rgba(0, 0, 0, 0.8);
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 90%;
+      max-width: 340px;
+      text-align: center;
+    }
+    .name-modal-input {
+      width: 100%;
+      height: 44px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    .name-modal-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+    }
+    .name-modal-btn {
+      width: 100%;
+      height: 44px;
+      background: linear-gradient(135deg, var(--gold) 0%, #d49400 100%);
+      color: #000;
+      font-weight: 800;
+      font-size: 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255, 201, 71, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="client-app">
+    <!-- Header -->
+    <header class="client-header">
+      <div class="client-logo">
+        <span style="font-size: 16px;">🎰</span>
+        <span>250 서바이벌 3D 라이브</span>
+      </div>
+      <div class="client-assigned-badge" id="assignedBadge" style="cursor: pointer;" title="이름 변경">
+        내 구슬: 연결 중...
+      </div>
+    </header>
+
+    <!-- Viewport -->
+    <div class="client-viewport">
+      <div class="client-hud">
+        <div class="client-hud-pill">🎯 타깃: <strong id="hudTargetName">구슬 연결 중</strong></div>
+        <div class="client-hud-pill">📍 위치: <strong id="hudTargetStage">1단계</strong></div>
+        <div class="client-hud-pill">⚡ 속도: <strong id="hudTargetSpeed">0.0 px/s</strong></div>
+        <div class="client-hud-pill" style="margin-left: auto;">🌐 <strong id="hudConnectionStatus" style="color: var(--gold);">서버 연결 중...</strong></div>
+      </div>
+
+      <div class="cockpit-hud-overlay">
+        <div class="hud-speed-bar left">
+          <div class="hud-speed-tick"></div>
+          <div class="hud-speed-tick"></div>
+          <div class="hud-speed-tick"></div>
+          <div class="hud-speed-tick"></div>
+          <div class="hud-speed-tick"></div>
+        </div>
+        <div class="hud-speed-bar right">
+          <div class="hud-speed-tick"></div>
+          <div class="hud-speed-tick"></div>
+          <div class="hud-speed-tick"></div>
+          <div class="hud-speed-tick"></div>
+          <div class="hud-speed-tick"></div>
+        </div>
+      </div>
+
+      <div id="client3dContainer"></div>
+    </div>
+  </div>
+
+  <!-- Name Input Modal -->
+  <div class="name-modal-overlay active" id="clientNameModal">
+    <div class="name-modal-card">
+      <div style="font-size: 38px; margin-bottom: 6px; line-height: 1;">🎰</div>
+      <h2 style="font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 4px;">AX Survival</h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">참여할 닉네임 / 이름을 입력하세요</p>
+      
+      <input type="text" id="clientNameInput" placeholder="이름 입력 (예: 홍길동)" class="name-modal-input" maxlength="12" autocomplete="off">
+      <button id="btnSubmitName" class="name-modal-btn">참가하기 (Enter Game)</button>
+    </div>
+  </div>
+
+  <!-- Disconnect Modal -->
+  <div class="name-modal-overlay" id="clientDisconnectModal">
+    <div class="name-modal-card" style="border-color: rgba(255, 45, 107, 0.5); box-shadow: 0 0 40px rgba(255, 45, 107, 0.3);">
+      <div style="font-size: 38px; margin-bottom: 6px; line-height: 1;">⚠️</div>
+      <h2 style="font-size: 18px; font-weight: 800; color: #ff2d6b; margin-bottom: 4px;">접속 종료 안내</h2>
+      <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 18px; line-height: 1.5;" id="disconnectReason">
+        다른 기기 또는 새로운 창에서 새로 접속하여 기존 접속이 종료되었습니다.
+      </p>
+      <button id="btnReconnectClient" class="name-modal-btn" style="background: linear-gradient(135deg, #ff2d6b 0%, #c1003d 100%); color: #fff; box-shadow: 0 4px 16px rgba(255, 45, 107, 0.3);">
+        🔄 새로고침 / 재접속하기
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/client.js"></script>
+</body>
+</html>
