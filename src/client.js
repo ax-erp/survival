@@ -312,7 +312,7 @@ async function getWebSocketUrl() {
     }
   }
 
-  // 2. For custom domain names, reverse proxies, and standard ports, use location.host directly!
+  // 2. For domain names (axserv.duckdns.org), reverse proxies, and standard ports, use location.host directly!
   return `${protocol}//${location.host}`;
 }
 
@@ -336,12 +336,9 @@ async function connectWebSocket() {
     }
   };
 
-  ws.onmessage = async (e) => {
+  ws.onmessage = (e) => {
     if (e.data instanceof ArrayBuffer) {
       unpackBinaryTick(e.data);
-    } else if (typeof Blob !== 'undefined' && e.data instanceof Blob) {
-      const arrayBuf = await e.data.arrayBuffer();
-      unpackBinaryTick(arrayBuf);
     } else {
       try {
         const msg = JSON.parse(e.data);
